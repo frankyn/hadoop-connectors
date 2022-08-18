@@ -287,23 +287,24 @@ public final class GoogleCloudStorageGrpcWriteChannelTest {
     headerInterceptor.verifyAllRequestsHasGoogRequestParamsHeader(V1_BUCKET_NAME, 2);
   }
 
-  @Test
-  public void writeUsesRequesterPaysProjectIfProvided() throws Exception {
-    AsyncWriteChannelOptions options = AsyncWriteChannelOptions.builder().build();
-    ObjectWriteConditions writeConditions = ObjectWriteConditions.NONE;
-    GoogleCloudStorageGrpcWriteChannel writeChannel =
-        newWriteChannel(options, writeConditions, /* requesterPaysProject= */ "project-id");
-
-    ByteString data = ByteString.copyFromUtf8("test data");
-    writeChannel.initialize();
-    writeChannel.write(data.asReadOnlyByteBuffer());
-    writeChannel.close();
-
-    StartResumableWriteRequest.Builder expectedRequestBuilder = START_REQUEST.toBuilder();
-    expectedRequestBuilder.getCommonRequestParamsBuilder().setUserProject("project-id");
-    verify(fakeService, times(1)).startResumableWrite(eq(expectedRequestBuilder.build()), any());
-    headerInterceptor.verifyAllRequestsHasGoogRequestParamsHeader(V1_BUCKET_NAME, 2);
-  }
+  //  @Test
+  //  public void writeUsesRequesterPaysProjectIfProvided() throws Exception {
+  //    AsyncWriteChannelOptions options = AsyncWriteChannelOptions.builder().build();
+  //    ObjectWriteConditions writeConditions = ObjectWriteConditions.NONE;
+  //    GoogleCloudStorageGrpcWriteChannel writeChannel =
+  //        newWriteChannel(options, writeConditions, /* requesterPaysProject= */ "project-id");
+  //
+  //    ByteString data = ByteString.copyFromUtf8("test data");
+  //    writeChannel.initialize();
+  //    writeChannel.write(data.asReadOnlyByteBuffer());
+  //    writeChannel.close();
+  //
+  //    StartResumableWriteRequest.Builder expectedRequestBuilder = START_REQUEST.toBuilder();
+  //    expectedRequestBuilder.getCommonRequestParamsBuilder().setUserProject("project-id");
+  //    verify(fakeService, times(1)).startResumableWrite(eq(expectedRequestBuilder.build()),
+  // any());
+  //    headerInterceptor.verifyAllRequestsHasGoogRequestParamsHeader(V1_BUCKET_NAME, 2);
+  //  }
 
   @Test
   public void writeHandlesErrorOnStartRequest() throws Exception {

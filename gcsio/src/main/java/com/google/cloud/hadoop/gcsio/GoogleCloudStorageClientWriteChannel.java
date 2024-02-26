@@ -26,11 +26,8 @@ import com.google.cloud.storage.BlobWriteSession;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.BlobWriteOption;
 import com.google.common.flogger.GoogleLogger;
-import com.google.common.io.ByteStreams;
-import com.google.protobuf.ByteString;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
@@ -116,21 +113,24 @@ class GoogleCloudStorageClientWriteChannel extends BaseAbstractGoogleAsyncWriteC
     public Boolean call() throws Exception {
       // Try-with-resource will close this end of the pipe so that
       // the writer at the other end will not hang indefinitely.
+      System.out.println("Frank: print out");
       logger.atFiner().log("Starting upload for resource %s", resourceId);
       try (InputStream ignore = pipeSource) {
         boolean lastChunk = false;
         ByteBuffer byteBuffer = ByteBuffer.allocate(MAX_BYTES_PER_MESSAGE);
         while (!lastChunk) {
           int remainingCapacity = byteBuffer.remaining();
-          ByteString data =
-              ByteString.readFrom(
-                  ByteStreams.limit(pipeSource, remainingCapacity), remainingCapacity);
-          if (data.size() < remainingCapacity) {
+          while(byteBuffer.hasRemaining()) {
+            byteBuffer.put((byte) pipeSource.read());
+          }
+          //          ByteString data =
+          //              ByteString.readFrom(
+          //                  ByteStreams.limit(pipeSource, remainingCapacity), remainingCapacity);
+          if (byteBuffer.remaining() < remainingCapacity) {
             lastChunk = true;
           }
-          byteBuffer.put(data.toByteArray());
           // switch to read mode
-          ((Buffer) byteBuffer).flip();
+          byteBuffer.flip();
           // this could result into partial write
           writeInternal(byteBuffer);
           if (!lastChunk) {
